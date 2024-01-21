@@ -1,4 +1,5 @@
 const Post = require("../models/postModel");
+const { route } = require("../routes/userRouter");
 
 const createPost = async (req, res) => {
   try {
@@ -45,13 +46,13 @@ const createPost = async (req, res) => {
 };
 
 const allPosts = async (req, res) => {
-    const posts = await Post.find({}).populate("admin", "-password")
+  const posts = await Post.find({}).populate("admin", "-password");
 
-    res.status(200).json({
-        success: true,
-        postsLen: posts.length,
-        posts: posts.reverse()
-    })
+  res.status(200).json({
+    success: true,
+    postsLen: posts.length,
+    posts: posts.reverse(),
+  });
   try {
   } catch (error) {
     res.status(400).json({
@@ -61,4 +62,48 @@ const allPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, allPosts };
+const deleteUserPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide Post Id",
+      });
+    }
+
+    const exists = req.user.posts.includes(id)
+    if(!exists){
+      return res.status(400).json({
+        success: false,
+        message: "You are not able to delete this post",
+      });
+    }
+
+    const index = req.user.posts.indexOf(id)
+    req.user.posts.splice(index, 1)
+
+    
+    const post = await Post.findOneAndDelete({ _id: id });
+    if(!post){
+      return res.status(400).json({
+        success: false,
+        message: "Post not deleted",
+      });
+    }
+    
+    await req.user.save()
+    res.status(201).json({
+      success: true,
+      message: "Post deleted Successfully",
+      post: post,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error,
+    });
+  }
+};
+
+module.exports = { createPost, allPosts, deleteUserPost };
