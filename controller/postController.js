@@ -108,12 +108,18 @@ const deleteUserPost = async (req, res) => {
 const editUserPost = async (req, res) => {
   try {
     const { id } = req.params;
-    const {title} = req.body;
+    const {title, pic} = req.body;
 
     if(!title){
       return res.status(400).json({
         success: false,
         message: "Please Provide New Title",
+      });
+    }
+    if(!pic){
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide New Pic",
       });
     }
 
@@ -132,7 +138,7 @@ const editUserPost = async (req, res) => {
       });
     }
 
-    const post = await Post.findOneAndUpdate({ _id: id }, { title: title });
+    const post = await Post.findOneAndUpdate({ _id: id }, { title: title, pic: pic });
 
     if (!post) {
       return res.status(400).json({
