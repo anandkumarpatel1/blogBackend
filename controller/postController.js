@@ -72,27 +72,26 @@ const deleteUserPost = async (req, res) => {
       });
     }
 
-    const exists = req.user.posts.includes(id)
-    if(!exists){
+    const exists = req.user.posts.includes(id);
+    if (!exists) {
       return res.status(400).json({
         success: false,
         message: "You are not able to delete this post",
       });
     }
 
-    const index = req.user.posts.indexOf(id)
-    req.user.posts.splice(index, 1)
+    const index = req.user.posts.indexOf(id);
+    req.user.posts.splice(index, 1);
 
-    
     const post = await Post.findOneAndDelete({ _id: id });
-    if(!post){
+    if (!post) {
       return res.status(400).json({
         success: false,
         message: "Post not deleted",
       });
     }
-    
-    await req.user.save()
+
+    await req.user.save();
     res.status(201).json({
       success: true,
       message: "Post deleted Successfully",
@@ -106,4 +105,54 @@ const deleteUserPost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, allPosts, deleteUserPost };
+const editUserPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {title} = req.body;
+
+    if(!title){
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide New Title",
+      });
+    }
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide Post Id",
+      });
+    }
+
+    const exists = req.user.posts.includes(id);
+    if (!exists) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not able to edit this post",
+      });
+    }
+
+    const post = await Post.findOneAndUpdate({ _id: id }, { title: title });
+
+    if (!post) {
+      return res.status(400).json({
+        success: false,
+        message: "Post not deleted",
+      });
+    }
+
+    await post.save()
+
+    res.status(201).json({
+      success: true,
+      message: "Post Updated Successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error,
+    });
+  }
+};
+
+module.exports = { createPost, allPosts, deleteUserPost, editUserPost };
